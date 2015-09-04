@@ -376,10 +376,31 @@ def human_seconds_short(interval):
 # http://dev.pocoo.org/hg/pygments-main/file/b2deea5b5030/pygments/console.py
 # (pygments is by Tim Hatch, Armin Ronacher, et al.)
 COLOR_ESCAPE = "\x1b["
-DARK_COLORS = ["black", "darkred", "darkgreen", "brown", "darkblue",
-               "purple", "teal", "lightgray"]
-LIGHT_COLORS = ["darkgray", "red", "green", "yellow", "blue",
-                "fuchsia", "turquoise", "white"]
+DARK_COLORS = {
+    "black": 0,
+    "darkred": 1,
+    "darkgreen": 2,
+    "brown": 3,
+    "darkyellow": 3,
+    "darkblue": 4,
+    "purple": 5,
+    "darkmagenta": 5,
+    "teal": 6,
+    "darkcyan": 6,
+    "lightgray": 7
+}
+LIGHT_COLORS = {
+    "darkgray": 0,
+    "red": 1,
+    "green": 2,
+    "yellow": 3,
+    "blue": 4,
+    "fuchsia": 5,
+    "magenta": 5,
+    "turquoise": 6,
+    "cyan": 6,
+    "white": 7
+}
 RESET_COLOR = COLOR_ESCAPE + "39;49;00m"
 
 # These abstract COLOR_NAMES are lazily mapped on to the actual color in COLORS
@@ -395,9 +416,9 @@ def _colorize(color, text):
     in DARK_COLORS or LIGHT_COLORS.
     """
     if color in DARK_COLORS:
-        escape = COLOR_ESCAPE + "%im" % (DARK_COLORS.index(color) + 30)
+        escape = COLOR_ESCAPE + "%im" % (DARK_COLORS[color] + 30)
     elif color in LIGHT_COLORS:
-        escape = COLOR_ESCAPE + "%i;01m" % (LIGHT_COLORS.index(color) + 30)
+        escape = COLOR_ESCAPE + "%i;01m" % (LIGHT_COLORS[color] + 30)
     else:
         raise ValueError('no such color %s', color)
     return escape + text + RESET_COLOR
@@ -764,6 +785,7 @@ class CommonOptionsParser(optparse.OptionParser, object):
         self.add_path_option()
         self.add_format_option()
 
+
 # Subcommand parsing infrastructure.
 #
 # This is a fairly generic subcommand parser for optparse. It is
@@ -771,7 +793,6 @@ class CommonOptionsParser(optparse.OptionParser, object):
 # http://gist.github.com/462717
 # There you will also find a better description of the code and a more
 # succinct example program.
-
 
 class Subcommand(object):
     """A subcommand of a root command-line application that may be
@@ -1082,7 +1103,7 @@ def _open_library(config):
         )
         lib.get_item(0)  # Test database connection.
     except (sqlite3.OperationalError, sqlite3.DatabaseError):
-        log.debug(traceback.format_exc())
+        log.debug('{}', traceback.format_exc())
         raise UserError(u"database file {0} could not be opened".format(
             util.displayable_path(dbpath)
         ))
@@ -1148,8 +1169,8 @@ def main(args=None):
     except library.FileOperationError as exc:
         # These errors have reasonable human-readable descriptions, but
         # we still want to log their tracebacks for debugging.
-        log.debug(traceback.format_exc())
-        log.error(exc)
+        log.debug('{}', traceback.format_exc())
+        log.error('{}', exc)
         sys.exit(1)
     except confit.ConfigError as exc:
         log.error(u'configuration error: {0}', exc)
@@ -1165,4 +1186,4 @@ def main(args=None):
             raise
     except KeyboardInterrupt:
         # Silently ignore ^C except in verbose mode.
-        log.debug(traceback.format_exc())
+        log.debug('{}', traceback.format_exc())

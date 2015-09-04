@@ -55,7 +55,7 @@ import traceback
 import enum
 
 from beets import logging
-from beets.util import displayable_path
+from beets.util import displayable_path, syspath
 
 
 __all__ = ['UnreadableFileError', 'FileTypeError', 'MediaFile']
@@ -270,10 +270,23 @@ def _sc_encode(gain, peak):
 
 # Cover art and other images.
 
+def _wider_test_jpeg(data):
+    """Test for a jpeg file following the UNIX file implementation which
+    uses the magic bytes rather than just looking for the bytes b'JFIF'
+    or b'EXIF' at a fixed position.
+    """
+    if data[:2] == b'\xff\xd8':
+        return 'jpeg'
+
+
 def _image_mime_type(data):
     """Return the MIME type of the image data (a bytestring).
     """
-    kind = imghdr.what(None, h=data)
+    # This checks for a jpeg file with only the magic bytes (unrecognized by
+    # imghdr.what). imghdr.what returns none for that type of file, so
+    # _wider_test_jpeg is run in that case. It still returns None if it didn't
+    # match such a jpeg file.
+    kind = imghdr.what(None, h=data) or _wider_test_jpeg(data)
     if kind in ['gif', 'jpeg', 'png', 'tiff', 'bmp']:
         return 'image/{0}'.format(kind)
     elif kind == 'pgm':
@@ -1316,6 +1329,7 @@ class MediaFile(object):
         By default, MP3 files are saved with ID3v2.4 tags. You can use
         the older ID3v2.3 standard by specifying the `id3v23` option.
         """
+        path = syspath(path)
         self.path = path
 
         unreadable_exc = (
@@ -1342,11 +1356,11 @@ class MediaFile(object):
                 # anywhere else.
                 raise
             else:
-                log.debug(traceback.format_exc())
+                log.debug('{}', traceback.format_exc())
                 raise MutagenError(path, exc)
         except Exception as exc:
             # Isolate bugs in Mutagen.
-            log.debug(traceback.format_exc())
+            log.debug('{}', traceback.format_exc())
             log.error(u'uncaught Mutagen exception in open: {0}', exc)
             raise MutagenError(path, exc)
 
@@ -1419,7 +1433,7 @@ class MediaFile(object):
             # Propagate these through: they don't represent Mutagen bugs.
             raise
         except Exception as exc:
-            log.debug(traceback.format_exc())
+            log.debug('{}', traceback.format_exc())
             log.error(u'uncaught Mutagen exception in save: {0}', exc)
             raise MutagenError(self.path, exc)
 
@@ -1445,6 +1459,34 @@ class MediaFile(object):
         for property, descriptor in cls.__dict__.items():
             if isinstance(descriptor, MediaField):
                 yield property.decode('utf8')
+
+    @classmethod
+    def _field_sort_name(cls, name):
+        """Get a sort key for a field name that determines the order
+        fields should be written in.
+
+        Fields names are kept unchanged, unless they are instances of
+        :class:`DateItemField`, in which case `year`, `month`, and `day`
+        are replaced by `date0`, `date1`, and `date2`, respectively, to
+        make them appear in that order.
+        """
+        if isinstance(cls.__dict__[name], DateItemField):
+            name = re.sub('year',  'date0', name)
+            name = re.sub('month', 'date1', name)
+            name = re.sub('day',   'date2', name)
+        return name
+
+    @classmethod
+    def sorted_fields(cls):
+        """Get the names of all writable metadata fields, sorted in the
+        order that they should be written.
+
+        This is a lexicographic order, except for instances of
+        :class:`DateItemField`, which are sorted in year-month-day
+        order.
+        """
+        for property in sorted(cls.fields(), key=cls._field_sort_name):
+            yield property
 
     @classmethod
     def readable_fields(cls):
@@ -1482,7 +1524,7 @@ class MediaFile(object):
         the `MediaFile`. If a key has the value `None`, the
         corresponding property is deleted from the `MediaFile`.
         """
-        for field in self.fields():
+        for field in self.sorted_fields():
             if field in dict:
                 if dict[field] is None:
                     delattr(self, field)

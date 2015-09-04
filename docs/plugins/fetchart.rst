@@ -36,8 +36,6 @@ file. The available options are:
   Default: ``no``.
 - **cover_names**: Prioritize images containing words in this list.
   Default: ``cover front art album folder``.
-- **google_search**: Gather images from Google Image Search.
-  Default: ``no``.
 - **minwidth**: Only images with a width bigger or equal to ``minwidth`` are
   considered as valid album art candidates. Default: 0.
 - **maxwidth**: A maximum image width to downscale fetched images if they are
@@ -51,8 +49,9 @@ file. The available options are:
   found in the filesystem.
 - **sources**: List of sources to search for images. An asterisk `*` expands
   to all available sources.
-  Default: ``coverart itunes albumart amazon google wikipedia``, i.e.,
-  all sources.
+  Default: ``coverart itunes amazon albumart``, i.e., everything but
+  ``wikipedia`` and ``google``. Enable those two sources for more matches at
+  the cost of some speed.
 
 Note: ``minwidth`` and ``enforce_ratio`` options require either `ImageMagick`_
 or `PIL`_.

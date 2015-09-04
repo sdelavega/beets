@@ -405,13 +405,13 @@ class LastGenrePlugin(plugins.BeetsPlugin):
             return []
         except Exception as exc:
             # Isolate bugs in pylast.
-            self._log.debug(traceback.format_exc())
+            self._log.debug('{}', traceback.format_exc())
             self._log.error('error in pylast library: {0}', exc)
             return []
 
         # Filter by weight (optionally).
         if min_weight:
-            res = [el for el in res if (el.weight or 0) >= min_weight]
+            res = [el for el in res if (int(el.weight or 0)) >= min_weight]
 
         # Get strings from tags.
         res = [el.item.get_name().lower() for el in res]

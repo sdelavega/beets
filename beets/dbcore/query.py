@@ -21,6 +21,7 @@ import re
 from operator import mul
 from beets import util
 from datetime import datetime, timedelta
+import unicodedata
 
 
 class ParsingError(ValueError):
@@ -201,6 +202,7 @@ class RegexpQuery(StringFieldQuery):
     """
     def __init__(self, field, pattern, fast=True):
         super(RegexpQuery, self).__init__(field, pattern, fast)
+        pattern = self._normalize(pattern)
         try:
             self.pattern = re.compile(self.pattern)
         except re.error as exc:
@@ -209,9 +211,16 @@ class RegexpQuery(StringFieldQuery):
                                                 "a regular expression",
                                                 format(exc))
 
+    @staticmethod
+    def _normalize(s):
+        """Normalize a Unicode string's representation (used on both
+        patterns and matched values).
+        """
+        return unicodedata.normalize('NFC', s)
+
     @classmethod
     def string_match(cls, pattern, value):
-        return pattern.search(value) is not None
+        return pattern.search(cls._normalize(value)) is not None
 
 
 class BooleanQuery(MatchQuery):
@@ -757,7 +766,10 @@ class FixedFieldSort(FieldSort):
     def order_clause(self):
         order = "ASC" if self.ascending else "DESC"
         if self.case_insensitive:
-            field = 'LOWER({})'.format(self.field)
+            field = '(CASE ' \
+                    'WHEN TYPEOF({0})="text" THEN LOWER({0}) ' \
+                    'WHEN TYPEOF({0})="blob" THEN LOWER({0}) ' \
+                    'ELSE {0} END)'.format(self.field)
         else:
             field = self.field
         return "{0} {1}".format(field, order)

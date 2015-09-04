@@ -119,6 +119,11 @@ compatibility with Windows-influenced network filesystems like Samba).
 Trailing dots and trailing whitespace, which can cause problems on Windows
 clients, are also removed.
 
+When replacements other than the defaults are used, it is possible that they
+will increase the length of the path. In the scenario where this leads to a
+conflict with the maximum filename length, the default replacements will be
+used to resolve the conflict and beets will display a warning.
+
 Note that paths might contain special characters such as typographical
 quotes (``“”``). With the configuration above, those will not be
 replaced as they don't match the typewriter quote (``"``). To also strip these
@@ -233,7 +238,7 @@ A boolean controlling the track numbering style on multi-disc releases. By
 default (``per_disc_numbering: no``), tracks are numbered per-release, so the
 first track on the second disc has track number N+1 where N is the number of
 tracks on the first disc. If this ``per_disc_numbering`` is enabled, then the
-first track on each disc always has track number 1.
+first (non-pregap) track on each disc always has track number 1.
 
 If you enable ``per_disc_numbering``, you will likely want to change your
 :ref:`path-format-config` also to include ``$disc`` before ``$track`` to make
@@ -242,6 +247,11 @@ use a path format like this::
 
     paths:
         default: $albumartist/$album%aunique{}/$disc-$track $title
+
+When this option is off (the default), even "pregap" hidden tracks are
+numbered from one, not zero, so other track numbers may appear to be bumped up
+by one. When it is on, the pregap track for each disc can be numbered zero.
+
 
 .. _terminal_encoding:
 
@@ -325,8 +335,9 @@ in your configuration file that looks like this::
             action_default: turquoise
             action: blue
 
-Available colors: black, darkred, darkgreen, brown, darkblue, purple, teal,
-lightgray, darkgray, red, green, yellow, blue, fuchsia, turquoise, white
+Available colors: black, darkred, darkgreen, brown (darkyellow), darkblue,
+purple (darkmagenta), teal (darkcyan), lightgray, darkgray, red, green,
+yellow, blue, fuchsia (magenta), turquoise (cyan), white
 
 
 Importer Options

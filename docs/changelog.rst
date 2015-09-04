@@ -1,27 +1,78 @@
 Changelog
 =========
 
-1.3.14 (in development)
+1.3.15 (in development)
 -----------------------
 
-New features:
+The new features:
 
-* The :doc:`/plugins/duplicates` plugin now allows merging duplicate
-  track metadata (when detecting duplicate items), or duplicate album
-  tracks (when detecting duplicate albums).
-* The :doc:`/plugins/duplicates` plugin now enforces an ordering on
-  duplicates: it defaults to metadata attribute set completeness,
-  or alternatively any list of attributes that should be favored.
-* The :doc:`/plugins/metasync` plugin now lets you get metadata from iTunes.
-  This plugin is still in an experimental phase. :bug:`1450`
-* The :doc:`/plugins/fetchart` plugin will now complain for the `enforce_ratio`
-  and `min_width` options if no local imaging backend is available. :bug:`1460`
-* The `move` command has a new `-p/--pretend` option, making the command show
-  how the items will be moved, without modifying the files on disk.
-
+* Add new color aliases for standard terminal color names (e.g., cyan and
+  magenta). Thanks to :user:`mathstuf`. :bug:`1548`
+* :doc:`/plugins/play`: A new ``--args`` option lets you specify options for
+  the player command. :bug:`1532`
+* A new :doc:`/plugins/badfiles` helps you scan for corruption in your music
+  collection. Thanks to :user:`fxthomas`. :bug:`1568`
+* :doc:`/plugins/play`: A new ``raw`` configuration option lets the command
+  work with players (such as VLC) that expect music filenames as arguments,
+  rather than in a playlist. Thanks to :user:`nathdwek`. :bug:`1578`
 
 Fixes:
 
+* :doc:`/plugins/lastgenre`: Fix a bug that prevented tag popularity from
+  being considered. Thanks to :user:`svoos`. :bug:`1559`
+* Fixed a bug where plugins wouldn't be notified of the deletion of an item's
+  art, for example with the ``clearart`` command from the
+  :doc:`/plugins/embedart`. Thanks to :user:`nathdwek`. :bug:`1565`
+* :doc:`/plugins/fetchart`: The Google Images source is disabled by default
+  (as it was before beets 1.3.9), as is the Wikipedia source (which was
+  causing lots of unnecessary delays due to DBpedia downtime). To re-enable
+  these sources, add ``wikipedia google`` to your ``sources`` configuration
+  option.
+* The :ref:`list-cmd` command's help output now has a small query and format
+  string example. Thanks to :user:`pkess`. :bug:`1582`
+* :doc:`/plugins/fetchart`: The plugin now fetches PNGs but not GIFs. (It
+  still fetches JPEGs.) This avoids an error when trying to embed images,
+  since not all formats support GIFs. :bug:`1588`
+* Date fields are now written in the correct order (year-month-day), which
+  eliminates an intermittent bug where the latter two fields would not get
+  written to files. Thanks to :user:`jdetrey`. :bug:`1303` :bug:`1589`
+
+
+1.3.14 (August 2, 2015)
+-----------------------
+
+This is mainly a bugfix release, but we also have a nifty new plugin for
+`ipfs`_ and a bunch of new configuration options.
+
+The new features:
+
+* A new :doc:`/plugins/ipfs` lets you share music via a new, global,
+  decentralized filesystem. :bug:`1397`
+* :doc:`/plugins/duplicates`: You can now merge duplicate
+  track metadata (when detecting duplicate items), or duplicate album
+  tracks (when detecting duplicate albums).
+* :doc:`/plugins/duplicates`: Duplicate resolution now uses an ordering to
+  prioritize duplicates. By default, it prefers music with more complete
+  metadata, but you can configure it to use any list of attributes.
+* :doc:`/plugins/metasync`: Added a new backend to fetch metadata from iTunes.
+  This plugin is still in an experimental phase. :bug:`1450`
+* The `move` command has a new ``--pretend`` option, making the command show
+  how the items will be moved without actually changing anything.
+* The importer now supports matching of "pregap" or HTOA (hidden track-one
+  audio) tracks when they are listed in MusicBrainz. (This feature depends on a
+  new version of the ``musicbrainzngs`` library that is not yet released, but
+  will start working when it is available.) Thanks to :user:`ruippeixotog`.
+  :bug:`1104` :bug:`1493`
+* :doc:`/plugins/plexupdate`: A new ``token`` configuration option lets you
+  specify a key for Plex Home setups. Thanks to :user:`edcarroll`. :bug:`1494`
+
+Fixes:
+
+* :doc:`/plugins/fetchart`: Complain when the `enforce_ratio`
+  or `min_width` options are enabled but no local imaging backend is available
+  to carry them out. :bug:`1460`
+* :doc:`/plugins/importfeeds`: Avoid generating incorrect m3u filename when
+  both of the `m3u` and `m3u_multi` options are enabled. :bug:`1490`
 * :doc:`/plugins/duplicates`: Avoid a crash when misconfigured. :bug:`1457`
 * :doc:`/plugins/mpdstats`: Avoid a crash when the music played is not in the
   beets library. Thanks to :user:`CodyReichert`. :bug:`1443`
@@ -29,11 +80,12 @@ Fixes:
   :doc:`/plugins/embedart`, :doc:`/plugins/fetchart`,
   and :doc:`/plugins/thumbnails`). :bug:`1448`
 * :doc:`/plugins/permissions`: Fix an error with non-ASCII paths. :bug:`1449`
-* Fix sorting by paths when case-insensitive. :bug:`1451`
+* Fix sorting by paths when the :ref:`sort_case_insensitive` option is
+  enabled. :bug:`1451`
 * :doc:`/plugins/embedart`: Avoid an error when trying to embed invalid images
   into MPEG-4 files.
-* :doc:`/plugins/fetchart`: The Wikipedia source is now able to better deal
-  with non-typical cased artists (e.g., alt-J, dEUS).
+* :doc:`/plugins/fetchart`: The Wikipedia source can now better deal artists
+  that use non-standard capitalization (e.g., alt-J, dEUS).
 * :doc:`/plugins/web`: Fix searching for non-ASCII queries. Thanks to
   :user:`oldtopman`. :bug:`1470`
 * :doc:`/plugins/mpdupdate`: We now recommend the newer ``python-mpd2``
@@ -42,6 +94,44 @@ Fixes:
 * The importer interface and log file now output a useful list of files
   (instead of the word "None") when in album-grouping mode. :bug:`1475`
   :bug:`825`
+* Fix some logging errors when filenames and other user-provided strings
+  contain curly braces. :bug:`1481`
+* Regular expression queries over paths now work more reliably with non-ASCII
+  characters in filenames. :bug:`1482`
+* Fix a bug where the autotagger's :ref:`ignored` setting was sometimes, well,
+  ignored. :bug:`1487`
+* Fix a bug with Unicode strings when generating image thumbnails. :bug:`1485`
+* :doc:`/plugins/keyfinder`: Fix handling of Unicode paths. :bug:`1502`
+* :doc:`/plugins/fetchart`: When album art is already present, the message is
+  now printed in the ``text_highlight_minor`` color (light gray). Thanks to
+  :user:`Somasis`. :bug:`1512`
+* Some messages in the console UI now use plural nouns correctly. Thanks to
+  :user:`JesseWeinstein`. :bug:`1521`
+* Sorting numerical fields (such as track) now works again. :bug:`1511`
+* :doc:`/plugins/replaygain`: Missing GStreamer plugins now cause a helpful
+  error message instead of a crash. :bug:`1518`
+* Fix an edge case when producing sanitized filenames where the maximum path
+  length conflicted with the :ref:`replace` rules. Thanks to Ben Ockmore.
+  :bug:`496` :bug:`1361`
+* Fix an incompatibility with OS X 10.11 (where ``/usr/sbin`` seems not to be
+  on the user's path by default).
+* Fix an incompatibility with certain JPEG files. Here's a relevant `Python
+  bug`_. Thanks to :user:`nathdwek`. :bug:`1545`
+* Fix the :ref:`group_albums` importer mode so that it works correctly when
+  files are not already in order by album. :bug:`1550`
+* The ``fields`` command no longer separates built-in fields from
+  plugin-provided ones. This distinction was becoming increasingly unreliable.
+* :doc:`/plugins/duplicates`: Fix a Unicode warning when paths contained
+  non-ASCII characters. :bug:`1551`
+* :doc:`/plugins/fetchart`: Work around a urllib3 bug that could cause a
+  crash. :bug:`1555` :bug:`1556`
+* When you edit the configuration file with ``beet config -e`` and the file
+  does not exist, beets creates an empty file before editing it. This fixes an
+  error on OS X, where the ``open`` command does not work with non-existent
+  files. :bug:`1480`
+
+.. _Python bug: http://bugs.python.org/issue16512
+.. _ipfs: http://ipfs.io
 
 
 1.3.13 (April 24, 2015)

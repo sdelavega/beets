@@ -31,6 +31,7 @@ Each plugin has its own set of options that can be defined in a section bearing 
 .. toctree::
    :hidden:
 
+   badfiles
    bpd
    bpm
    bucket
@@ -50,6 +51,7 @@ Each plugin has its own set of options that can be defined in a section bearing 
    importfeeds
    info
    inline
+   ipfs
    keyfinder
    lastgenre
    lastimport
@@ -130,6 +132,7 @@ Interoperability
 ----------------
 
 * :doc:`importfeeds`: Keep track of imported files via ``.m3u`` playlist file(s) or symlinks.
+* :doc:`ipfs`: Import libraries from friends and get albums from them via ipfs.
 * :doc:`mpdupdate`: Automatically notifies `MPD`_ whenever the beets library
   changes.
 * :doc:`play`: Play beets queries in your music player.
@@ -137,6 +140,7 @@ Interoperability
   changes.
 * :doc:`smartplaylist`: Generate smart playlists based on beets queries.
 * :doc:`thumbnails`: Get thumbnails with the cover art on your album folders.
+* :doc:`badfiles`: Check audio file integrity.
 
 
 .. _Plex: http://plex.tv
